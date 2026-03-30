@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -216,10 +218,11 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <div class="form-group"><label>Bairro</label><input id="edit-v-neighborhood" type="text"></div>
     </div>
     <div class="form-group">
-      <label>Endereço</label>
-      <input id="edit-v-address" type="text">
+      <label>Bairro <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(usado para localização no mapa)</span></label>
+      <input id="edit-v-neighborhood2" type="text" placeholder="Bairro onde mora">
       <span id="edit-v-geo-status" class="geo-status" style="display:none"></span>
     </div>
+    <input type="hidden" id="edit-v-address" value="">
     <div class="form-group"><label>Interesse em GCEM</label>
       <select id="edit-v-gcem-interest">
         <option value="">Selecione...</option>
@@ -341,14 +344,14 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
           <option>Viúvo(a)</option><option>União Estável</option>
         </select>
       </div>
-      <div class="form-group"><label>Bairro</label><input id="v-neighborhood" type="text" placeholder="Bairro onde mora"></div>
-    </div>
-    <div class="form-row cols2">
       <div class="form-group">
-        <label>Endereço Completo <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(para localização no mapa)</span></label>
-        <input id="v-address" type="text" placeholder="Rua, número, bairro — Paranaguá/PR">
+        <label>Bairro <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(usado para localização no mapa)</span></label>
+        <input id="v-neighborhood" type="text" placeholder="Bairro onde mora">
         <span id="v-geo-status" class="geo-status" style="display:none"></span>
       </div>
+    </div>
+    <input type="hidden" id="v-address" value="">
+    <div class="form-row cols2" style="margin-bottom:0">
       <div class="form-group"><label>Gostaria de frequentar um GCEM?</label>
         <select id="v-gcem-interest">
           <option value="">Selecione...</option>
@@ -763,13 +766,13 @@ async function saveVisitor() {
   var whats = document.getElementById('v-whats').value.trim();
   if (!name || !whats) { showAlert('alert-visitor', 'error', '⚠️ Nome e WhatsApp são obrigatórios!'); return; }
   showLoader('Cadastrando visitante...');
-  var address = document.getElementById('v-address').value.trim();
+  var neighborhood = document.getElementById('v-neighborhood').value.trim();
   var coords = null;
-  if (address) {
+  if (neighborhood) {
     var st = document.getElementById('v-geo-status');
-    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-    coords = await geocode(address);
-    st.textContent = coords ? '✓ Localizado no mapa' : '✗ Endereço não encontrado';
+    st.textContent = '🔍 Localizando bairro...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    coords = await geocode(neighborhood);
+    st.textContent = coords ? '✓ Localizado no mapa' : '✗ Bairro não encontrado';
     st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-fail');
   }
   var v = {
@@ -777,8 +780,8 @@ async function saveVisitor() {
     name, whatsapp: whats,
     age: document.getElementById('v-age').value,
     civil: document.getElementById('v-civil').value,
-    neighborhood: document.getElementById('v-neighborhood').value.trim(),
-    address, coords,
+    neighborhood,
+    address: neighborhood, coords,
     gcemInterest: document.getElementById('v-gcem-interest').value,
     prayer: document.getElementById('v-prayer').value.trim(),
     date: new Date().toLocaleDateString('pt-BR'),
@@ -802,7 +805,7 @@ async function saveVisitor() {
 }
 
 function clearVisitorForm() {
-  ['v-name','v-whats','v-age','v-neighborhood','v-address','v-prayer'].forEach(id => document.getElementById(id).value = '');
+  ['v-name','v-whats','v-age','v-neighborhood','v-prayer'].forEach(id => document.getElementById(id).value = '');
   ['v-civil','v-gcem-interest'].forEach(id => document.getElementById(id).selectedIndex = 0);
   document.getElementById('v-geo-status').style.display = 'none';
 }
@@ -819,7 +822,7 @@ function openEditVisitor(id) {
   document.getElementById('edit-v-age').value = v.age || '';
   document.getElementById('edit-v-civil').value = v.civil || '';
   document.getElementById('edit-v-neighborhood').value = v.neighborhood || '';
-  document.getElementById('edit-v-address').value = v.address || '';
+  document.getElementById('edit-v-neighborhood2').value = v.neighborhood || '';
   document.getElementById('edit-v-gcem-interest').value = v.gcemInterest || '';
   document.getElementById('edit-v-prayer').value = v.prayer || '';
   document.getElementById('edit-v-geo-status').style.display = 'none';
@@ -834,19 +837,19 @@ async function saveEditVisitor() {
   var whats = document.getElementById('edit-v-whats').value.trim();
   if (!name || !whats) { showToast('Nome e WhatsApp são obrigatórios!', 'error'); return; }
   showLoader('Salvando...');
-  var newAddr = document.getElementById('edit-v-address').value.trim();
-  if (newAddr !== v.address) {
+  var newNeighborhood = document.getElementById('edit-v-neighborhood2').value.trim();
+  if (newNeighborhood !== v.neighborhood) {
     var st = document.getElementById('edit-v-geo-status');
-    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-    v.coords = newAddr ? await geocode(newAddr) : null;
-    st.textContent = v.coords ? '✓ Localizado' : '✗ Não encontrado';
+    st.textContent = '🔍 Localizando bairro...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    v.coords = newNeighborhood ? await geocode(newNeighborhood) : null;
+    st.textContent = v.coords ? '✓ Localizado no mapa' : '✗ Bairro não encontrado';
     st.className = 'geo-status ' + (v.coords ? 'geo-ok' : 'geo-fail');
   }
   v.name = name; v.whatsapp = whats;
   v.age = document.getElementById('edit-v-age').value;
   v.civil = document.getElementById('edit-v-civil').value;
-  v.neighborhood = document.getElementById('edit-v-neighborhood').value.trim();
-  v.address = newAddr;
+  v.neighborhood = newNeighborhood;
+  v.address = newNeighborhood;
   v.gcemInterest = document.getElementById('edit-v-gcem-interest').value;
   v.prayer = document.getElementById('edit-v-prayer').value.trim();
   try {
