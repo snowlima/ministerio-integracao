@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ministério de Integração — Comunidade da Graça</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#B71C1C;--red-dark:#7F0000;--red-mid:#C62828;--red-light:#FFF0F0;--red-border:#FFCDD2;
+  --gold:#C8860A;--gold-light:#FDF3DC;
+  --bg:#F7F4F2;--card:#FFFFFF;--border:#E6DDD8;
+  --text:#1A0A0A;--muted:#8A7070;
+  --green:#1A6B3C;--green-light:#E8F5EE;
+  --radius:14px;--shadow:0 2px 16px rgba(0,0,0,0.07);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+header{
+  background:linear-gradient(135deg,var(--red-dark) 0%,var(--red) 55%,#D32F2F 100%);
+  color:#fff;padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:72px;
+  box-shadow:0 4px 20px rgba(127,0,0,0.4);position:sticky;top:0;z-index:100;
+}
+.header-brand{display:flex;align-items:center;gap:14px}
+.header-icon{width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px solid rgba(255,255,255,0.3);flex-shrink:0}
+.brand-top{font-family:'Lora',serif;font-size:20px;font-weight:700;letter-spacing:0.3px;line-height:1.2}
+.brand-sub{font-size:10.5px;opacity:0.72;letter-spacing:0.9px;text-transform:uppercase;margin-top:1px}
+.header-stats{display:flex;gap:10px;align-items:center}
+.stat-pill{background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);border-radius:22px;padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px;font-weight:500;transition:background .2s}
+.stat-pill:hover{background:rgba(255,255,255,0.22)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4CAF50;flex-shrink:0;animation:pulse-green 2s infinite}
+@keyframes pulse-green{0%,100%{opacity:1}50%{opacity:0.4}}
+.sync-dot.offline{background:#ef5350;animation:none}
+
+/* NAV */
+nav{background:#fff;border-bottom:1.5px solid var(--border);padding:0 20px;display:flex;gap:2px;box-shadow:0 2px 8px rgba(0,0,0,0.05);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:14px 18px;border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:7px;margin-bottom:-1.5px;white-space:nowrap;flex-shrink:0}
+.nav-btn:hover{color:var(--red);background:#FFF5F5;border-radius:8px 8px 0 0}
+.nav-btn.active{color:var(--red);border-bottom-color:var(--red);font-weight:600}
+
+/* MAIN */
+main{padding:24px;max-width:1140px;margin:0 auto}
+.tab{display:none}.tab.active{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:24px;box-shadow:var(--shadow)}
+.card-title{font-family:'Lora',serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:9px;padding-bottom:13px;border-bottom:1px solid var(--border)}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+@media(max-width:720px){.card-grid{grid-template-columns:1fr}}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-row{display:grid;gap:14px;margin-bottom:14px}
+.form-row.cols2{grid-template-columns:1fr 1fr}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:680px){.form-row.cols2,.form-row.cols3{grid-template-columns:1fr}}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.6px}
+input,select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;transition:border-color .2s,box-shadow .2s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(183,28,28,0.1)}
+textarea{resize:vertical;min-height:82px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--red);color:#fff}.btn-primary:hover{background:var(--red-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(183,28,28,0.35)}
+.btn-primary:active{transform:translateY(0)}
+.btn-outline{background:#fff;color:var(--red);border:1.5px solid var(--red)}.btn-outline:hover{background:var(--red-light)}
+.btn-danger{background:#FFF5F5;color:#c62828;border:1.5px solid #FFCDD2}.btn-danger:hover{background:#FFEBEE}
+.btn-whatsapp{background:#25D366;color:#fff}.btn-whatsapp:hover{background:#20ba5a;transform:translateY(-1px)}
+.btn-success{background:#1A6B3C;color:#fff}.btn-success:hover{background:#145030}
+.btn-sm{padding:6px 13px;font-size:12px;border-radius:7px}
+.btn-block{width:100%;justify-content:center;padding:12px}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none !important}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-gold{background:var(--gold-light);color:var(--gold)}
+.badge-gray{background:#F3EFEF;color:#8A7070}
+.badge-green{background:var(--green-light);color:var(--green)}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.summary-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 14px;text-align:center;box-shadow:var(--shadow);transition:transform .2s}
+.summary-card:hover{transform:translateY(-2px)}
+.summary-num{font-family:'Lora',serif;font-size:32px;font-weight:700;color:var(--red)}
+.summary-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px}
+
+/* VISITOR CARDS */
+#visitors-list{display:flex;flex-direction:column;gap:12px}
+.visitor-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border-left:4px solid var(--red);transition:box-shadow .2s,transform .2s}
+.visitor-card:hover{box-shadow:0 6px 24px rgba(183,28,28,0.13);transform:translateX(2px)}
+.vc-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.vc-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--red-light),#FFE0E0);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--red);flex-shrink:0;border:2px solid var(--red-border)}
+.vc-name{font-weight:600;font-size:15px;line-height:1.3}
+.vc-date{font-size:11px;color:var(--muted);margin-top:2px}
+.vc-info{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.vc-field{font-size:12px;color:var(--muted);background:#FAF7F7;border:1px solid var(--border);border-radius:6px;padding:3px 10px}
+.vc-prayer{font-size:12px;color:var(--text);background:var(--gold-light);border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:12px;font-style:italic;line-height:1.55}
+.vc-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gcem-select{flex:1;min-width:170px;padding:8px 32px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-color:#fff}
+.gcem-select:focus{border-color:var(--red);outline:none;box-shadow:0 0 0 3px rgba(183,28,28,0.1)}
+
+/* GCEM CARDS */
+#gcems-list{display:flex;flex-direction:column;gap:10px}
+.gcem-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:box-shadow .2s}
+.gcem-card:hover{box-shadow:var(--shadow-lg)}
+.gcem-accent{width:5px;height:52px;border-radius:4px;background:var(--red);flex-shrink:0}
+.gcem-info{flex:1;min-width:0}
+.gcem-name{font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcem-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
+.gcem-actions{display:flex;gap:7px;flex-shrink:0}
+
+/* MAP */
+#map{height:520px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;position:relative}
+.map-legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-radius:10px;border:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.map-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+
+/* Map edit panel */
+.map-edit-panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;display:none}
+.map-edit-panel.show{display:block;animation:fadeUp .2s ease}
+.map-edit-title{font-weight:600;font-size:13px;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+
+/* MISC */
+.empty{text-align:center;padding:52px 20px;color:var(--muted)}
+.empty-icon{font-size:44px;margin-bottom:12px;opacity:0.35}
+.empty-text{font-size:14px}
+.alert{padding:11px 16px;border-radius:9px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:9px;border:1px solid transparent}
+.alert-success{background:var(--green-light);color:var(--green);border-color:#b6ddc7}
+.alert-error{background:var(--red-light);color:var(--red);border-color:var(--red-border)}
+.alert-info{background:var(--gold-light);color:var(--gold);border-color:#f0cc77}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.section-title{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--text)}
+.loader{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.8);z-index:999;align-items:center;justify-content:center;gap:12px;font-size:14px;color:var(--red);backdrop-filter:blur(3px)}
+.loader.show{display:flex}
+.spinner{width:24px;height:24px;border:2.5px solid var(--red-light);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.geo-status{font-size:11px;margin-top:5px;padding:3px 10px;border-radius:6px;display:inline-block}
+.geo-ok{background:var(--green-light);color:var(--green)}
+.geo-fail{background:var(--red-light);color:var(--red)}
+.geo-loading{background:var(--gold-light);color:var(--gold)}
+.church-banner{background:linear-gradient(135deg,var(--red-dark),#C62828);color:#fff;border-radius:12px;padding:15px 22px;display:flex;align-items:center;gap:16px;margin-bottom:22px;box-shadow:0 4px 16px rgba(127,0,0,0.2)}
+.church-banner-icon{font-size:28px;flex-shrink:0}
+.church-banner-name{font-family:'Lora',serif;font-weight:700;font-size:15px}
+.church-banner-text{font-size:12px;opacity:0.85;margin-top:2px;line-height:1.5}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--red-border);border-radius:3px}
+
+/* Responsive header */
+@media(max-width:600px){
+  .header-stats{display:none}
+  .brand-top{font-size:16px}
+  main{padding:16px}
+}
+
+/* Tab do Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:20px}
+.dash-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.dash-card-title{font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.activity-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius);padding:28px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Lora',serif;font-size:17px;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* Notif toast */
+.toast-container{position:fixed;top:82px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#fff;border-radius:10px;padding:12px 16px;box-shadow:0 6px 24px rgba(0,0,0,0.15);font-size:13px;display:flex;align-items:center;gap:10px;min-width:240px;max-width:340px;animation:toastIn .25s ease;border-left:4px solid var(--red);pointer-events:auto}
+.toast.success{border-left-color:var(--green)}
+.toast.error{border-left-color:var(--red)}
+.toast.info{border-left-color:var(--gold)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateX(20px)}}
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="spinner"></div><span id="loader-text">Carregando...</span></div>
+<div class="toast-container" id="toast-container"></div>
+
+<!-- MODAL EDITAR VISITANTE -->
+<div class="modal-overlay" id="modal-visitor">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Visitante</div>
+    <input type="hidden" id="edit-v-id">
+    <div class="form-row cols2">
+      <div class="form-group"><label>Nome *</label><input id="edit-v-name" type="text"></div>
+      <div class="form-group"><label>WhatsApp *</label><input id="edit-v-whats" type="tel" oninput="maskPhone(this)"></div>
+    </div>
+    <div class="form-row cols3">
+      <div class="form-group"><label>Idade</label><input id="edit-v-age" type="number" min="0" max="120"></div>
+      <div class="form-group"><label>Estado Civil</label>
+        <select id="edit-v-civil">
+          <option value="">Selecione...</option>
+          <option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option>
+          <option>Viúvo(a)</option><option>União Estável</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Bairro</label><input id="edit-v-neighborhood" type="text"></div>
+    </div>
+    <div class="form-group">
+      <label>Endereço</label>
+      <input id="edit-v-address" type="text">
+      <span id="edit-v-geo-status" class="geo-status" style="display:none"></span>
+    </div>
+    <div class="form-group"><label>Interesse em GCEM</label>
+      <select id="edit-v-gcem-interest">
+        <option value="">Selecione...</option>
+        <option value="Sim, tenho interesse">Sim, tenho interesse</option>
+        <option value="Talvez, quero saber mais">Talvez, quero saber mais</option>
+        <option value="Não por enquanto">Não por enquanto</option>
+        <option value="Já participo de um">Já participo de um</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Pedido de Oração</label><textarea id="edit-v-prayer"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-visitor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditVisitor()">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR GCEM -->
+<div class="modal-overlay" id="modal-gcem">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar GCEM</div>
+    <input type="hidden" id="edit-g-id">
+    <div class="form-group"><label>Nome do Grupo *</label><input id="edit-g-name" type="text"></div>
+    <div class="form-row cols2">
+      <div class="form-group"><label>Líder</label><input id="edit-g-leader" type="text"></div>
+      <div class="form-group"><label>WhatsApp *</label><input id="edit-g-whats" type="tel" oninput="maskPhone(this)"></div>
+    </div>
+    <div class="form-group">
+      <label>Endereço *</label>
+      <input id="edit-g-address" type="text">
+      <span id="edit-g-geo-status" class="geo-status" style="display:none"></span>
+    </div>
+    <div class="form-row cols2">
+      <div class="form-group"><label>Dia da Reunião</label>
+        <select id="edit-g-day">
+          <option value="">Selecione...</option>
+          <option>Segunda-feira</option><option>Terça-feira</option><option>Quarta-feira</option>
+          <option>Quinta-feira</option><option>Sexta-feira</option><option>Sábado</option><option>Domingo</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Horário</label><input id="edit-g-time" type="time"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-gcem')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditGcem()">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-brand">
+    <div class="header-icon">✝</div>
+    <div>
+      <div class="brand-top">Ministério de Integração</div>
+      <div class="brand-sub">Comunidade da Graça — Paranaguá / PR</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Conectando...</span></div>
+    <div class="stat-pill">👥 <span id="hd-visitors">0</span> Visitantes</div>
+    <div class="stat-pill">🏠 <span id="hd-gcems">0</span> GCEMs</div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showTab('dashboard')" id="tab-dashboard">📊 Dashboard</button>
+  <button class="nav-btn" onclick="showTab('visitante')" id="tab-visitante">📋 Novo Visitante</button>
+  <button class="nav-btn" onclick="showTab('gcems')" id="tab-gcems">🏠 GCEMs</button>
+  <button class="nav-btn" onclick="showTab('lista')" id="tab-lista">👥 Visitantes</button>
+  <button class="nav-btn" onclick="showTab('mapa')" id="tab-mapa">🗺 Mapa</button>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<div class="tab active" id="tab-content-dashboard">
+  <div class="church-banner">
+    <div class="church-banner-icon">⛪</div>
+    <div>
+      <div class="church-banner-name">Comunidade da Graça — Paranaguá</div>
+      <div class="church-banner-text">R. Nestor Víctor, 689 — João Gualberto · Paranaguá/PR · CEP 83203-540<br>Sistema de Acompanhamento de Visitantes</div>
+    </div>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="summary-num" id="dash-total">0</div><div class="summary-label">Total Visitantes</div></div>
+    <div class="summary-card"><div class="summary-num" id="dash-interest">0</div><div class="summary-label">Interesse GCEM</div></div>
+    <div class="summary-card"><div class="summary-num" id="dash-assigned">0</div><div class="summary-label">Encaminhados</div></div>
+    <div class="summary-card"><div class="summary-num" id="dash-prayer">0</div><div class="summary-label">Pedidos de Oração</div></div>
+    <div class="summary-card"><div class="summary-num" id="dash-gcems">0</div><div class="summary-label">GCEMs Ativos</div></div>
+    <div class="summary-card"><div class="summary-num" id="dash-mapped">0</div><div class="summary-label">No Mapa</div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-title">📋 Últimos Visitantes</div>
+      <div id="dash-recent-visitors"><div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:28px">📋</div><div class="empty-text">Nenhum visitante ainda</div></div></div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">⚡ Pendências</div>
+      <div id="dash-pending"><div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:28px">✅</div><div class="empty-text">Tudo encaminhado!</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NOVO VISITANTE -->
+<div class="tab" id="tab-content-visitante">
+  <div id="alert-visitor" style="display:none"></div>
+  <div class="card">
+    <div class="card-title">📋 Dados da Ficha de Visitante</div>
+    <div class="form-row cols2">
+      <div class="form-group"><label>Nome Completo *</label><input id="v-name" type="text" placeholder="Nome completo do visitante"></div>
+      <div class="form-group"><label>WhatsApp *</label><input id="v-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)"></div>
+    </div>
+    <div class="form-row cols3">
+      <div class="form-group"><label>Idade</label><input id="v-age" type="number" min="0" max="120" placeholder="Ex: 28"></div>
+      <div class="form-group"><label>Estado Civil</label>
+        <select id="v-civil">
+          <option value="">Selecione...</option>
+          <option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option>
+          <option>Viúvo(a)</option><option>União Estável</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Bairro</label><input id="v-neighborhood" type="text" placeholder="Bairro onde mora"></div>
+    </div>
+    <div class="form-row cols2">
+      <div class="form-group">
+        <label>Endereço Completo <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(para localização no mapa)</span></label>
+        <input id="v-address" type="text" placeholder="Rua, número, bairro — Paranaguá/PR">
+        <span id="v-geo-status" class="geo-status" style="display:none"></span>
+      </div>
+      <div class="form-group"><label>Gostaria de frequentar um GCEM?</label>
+        <select id="v-gcem-interest">
+          <option value="">Selecione...</option>
+          <option value="Sim, tenho interesse">Sim, tenho interesse</option>
+          <option value="Talvez, quero saber mais">Talvez, quero saber mais</option>
+          <option value="Não por enquanto">Não por enquanto</option>
+          <option value="Já participo de um">Já participo de um</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Pedido de Oração</label>
+      <textarea id="v-prayer" placeholder="Pedidos de oração ou observações..."></textarea>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px">
+      <button class="btn btn-outline" onclick="clearVisitorForm()">🗑 Limpar</button>
+      <button class="btn btn-primary" onclick="saveVisitor()">✅ Cadastrar Visitante</button>
+    </div>
+  </div>
+</div>
+
+<!-- GCEMS -->
+<div class="tab" id="tab-content-gcems">
+  <div id="alert-gcem" style="display:none"></div>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">➕ Novo GCEM</div>
+      <div class="form-group"><label>Nome do Grupo *</label><input id="g-name" type="text" placeholder="Ex: GCEM Centro, GCEM Rocio..."></div>
+      <div class="form-row cols2">
+        <div class="form-group"><label>Nome do Líder</label><input id="g-leader" type="text" placeholder="Nome do líder"></div>
+        <div class="form-group"><label>WhatsApp do Líder *</label><input id="g-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)"></div>
+      </div>
+      <div class="form-group">
+        <label>Endereço do GCEM *</label>
+        <input id="g-address" type="text" placeholder="Endereço completo — Paranaguá/PR">
+        <span id="g-geo-status" class="geo-status" style="display:none"></span>
+      </div>
+      <div class="form-row cols2">
+        <div class="form-group"><label>Dia da Reunião</label>
+          <select id="g-day">
+            <option value="">Selecione...</option>
+            <option>Segunda-feira</option><option>Terça-feira</option><option>Quarta-feira</option>
+            <option>Quinta-feira</option><option>Sexta-feira</option><option>Sábado</option><option>Domingo</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Horário</label><input id="g-time" type="time"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveGcem()">✅ Cadastrar GCEM</button>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="font-family:'Lora',serif;font-size:15px;font-weight:700">GCEMs Cadastrados</span>
+        <span class="badge badge-red" id="gcem-count-badge">0</span>
+      </div>
+      <div id="gcems-list"><div class="empty"><div class="empty-icon">🏠</div><div class="empty-text">Nenhum GCEM cadastrado ainda</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTA VISITANTES -->
+<div class="tab" id="tab-content-lista">
+  <div class="section-header">
+    <div class="section-title">👥 Visitantes Cadastrados</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="search-visitor" placeholder="🔍 Buscar por nome..." style="width:200px" oninput="renderVisitors()">
+      <select id="filter-gcem-interest" onchange="renderVisitors()" style="width:200px">
+        <option value="">Todos os visitantes</option>
+        <option value="Sim, tenho interesse">Com interesse em GCEM</option>
+        <option value="Talvez, quero saber mais">Talvez (saber mais)</option>
+        <option value="sem-encaminhar">Não encaminhados</option>
+      </select>
+    </div>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="summary-num" id="sum-total">0</div><div class="summary-label">Total Visitantes</div></div>
+    <div class="summary-card"><div class="summary-num" id="sum-interest">0</div><div class="summary-label">Interesse GCEM</div></div>
+    <div class="summary-card"><div class="summary-num" id="sum-assigned">0</div><div class="summary-label">Encaminhados</div></div>
+    <div class="summary-card"><div class="summary-num" id="sum-prayer">0</div><div class="summary-label">Pedidos de Oração</div></div>
+  </div>
+  <div id="visitors-list"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Nenhum visitante cadastrado ainda</div></div></div>
+</div>
+
+<!-- MAPA -->
+<div class="tab" id="tab-content-mapa">
+  <div class="section-header">
+    <div class="section-title">🗺 Mapa — Visitantes e GCEMs</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" id="btn-add-marker" onclick="toggleAddMarker()">📍 Adicionar Marcador</button>
+      <button class="btn btn-primary btn-sm" onclick="initMap()">🔄 Atualizar</button>
+    </div>
+  </div>
+
+  <!-- Painel para adicionar/editar marcador no mapa -->
+  <div class="map-edit-panel" id="map-edit-panel">
+    <div class="map-edit-title">📍 <span id="map-edit-title-text">Clique no mapa para posicionar o marcador</span></div>
+    <div class="form-row cols2" style="margin-bottom:10px">
+      <div class="form-group" style="margin-bottom:0"><label>Latitude</label><input id="marker-lat" type="number" step="any" readonly placeholder="Clique no mapa..."></div>
+      <div class="form-group" style="margin-bottom:0"><label>Longitude</label><input id="marker-lng" type="number" step="any" readonly placeholder="Clique no mapa..."></div>
+    </div>
+    <div class="form-row cols2" style="margin-bottom:10px">
+      <div class="form-group" style="margin-bottom:0"><label>Tipo</label>
+        <select id="marker-type">
+          <option value="visitor">Visitante</option>
+          <option value="gcem">GCEM</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0"><label>Vincular a</label>
+        <select id="marker-link"><option value="">Selecione...</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-primary btn-sm" onclick="saveMarkerPosition()" id="btn-save-marker" disabled>💾 Salvar Posição</button>
+      <button class="btn btn-outline btn-sm" onclick="cancelAddMarker()">✕ Cancelar</button>
+    </div>
+  </div>
+
+  <div class="map-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#B71C1C"></div> Igreja</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1A6B3C"></div> GCEMs</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#C8860A"></div> Visitantes</div>
+    <div class="legend-item"><div style="width:24px;height:0;border-top:2px dashed #C8860A;margin-right:-4px"></div> GCEM mais próximo</div>
+    <div class="legend-item" style="margin-left:auto;font-size:11px;color:var(--muted)">🖱️ Arraste os marcadores para reposicionar</div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:18px">
+    <div id="map" style="height:520px;border-radius:var(--radius)"></div>
+  </div>
+
+  <div id="map-suggestions" style="display:none">
+    <div style="font-family:'Lora',serif;font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      💡 Sugestões de Encaminhamento
+      <span style="font-size:12px;color:var(--muted);font-weight:400;font-family:'DM Sans',sans-serif">(visitantes ainda não encaminhados)</span>
+    </div>
+    <div id="suggestions-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+</main>
+
+<!-- Google Maps API -->
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://gqakaodlbankaxjxdmya.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxYWthb2RsYmFua2F4anhkbXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzQ0OTMsImV4cCI6MjA5MDQxMDQ5M30.FVIkB4vJHd5PvQ787L_INZbQNmh7w3UD2PO8mlT-bPU';
+
+let supabase_client = null;
+let dbReady = false;
+
+async function initSupabase() {
+  try {
+    supabase_client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Test connection
+    const { error } = await supabase_client.from('visitors').select('id').limit(1);
+    if (error && error.code === '42P01') {
+      // Tables don't exist, create them
+      await createTables();
+    }
+    dbReady = true;
+    setSyncStatus(true, 'Online (Supabase)');
+  } catch (e) {
+    console.error('Supabase init error:', e);
+    setSyncStatus(false, 'Offline (local)');
+  }
+}
+
+async function createTables() {
+  // Tables should be created via Supabase dashboard or migrations
+  // This is just a fallback notice
+  console.warn('Tables may not exist. Please create them in Supabase dashboard.');
+  showToast('Crie as tabelas no Supabase (veja console)', 'error', 6000);
+}
+
+function setSyncStatus(online, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (dot) dot.className = 'sync-dot' + (online ? '' : ' offline');
+  if (lbl) lbl.textContent = label;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+var visitors = [];
+var gcems = [];
+var mapInstance = null;
+var mapMarkers = [];
+var addingMarker = false;
+var tempMarker = null;
+var draggableMarkers = [];
+
+var CHURCH = {
+  lat: -25.5196, lng: -48.5046,
+  name: 'Comunidade da Graça',
+  address: 'R. Nestor Víctor, 689 — João Gualberto, Paranaguá/PR'
+};
+var PARANAGUA_CENTER = [-25.5196, -48.5046];
+
+// ============================================================
+// DATA LOADING / SAVING (Supabase with localStorage fallback)
+// ============================================================
+async function loadData() {
+  showLoader('Carregando dados...');
+  try {
+    if (dbReady && supabase_client) {
+      const [vRes, gRes] = await Promise.all([
+        supabase_client.from('visitors').select('*').order('created_at', { ascending: false }),
+        supabase_client.from('gcems').select('*').order('created_at', { ascending: true })
+      ]);
+      if (!vRes.error) {
+        visitors = (vRes.data || []).map(mapVisitorFromDB);
+        saveLocalBackup();
+      } else throw vRes.error;
+      if (!gRes.error) {
+        gcems = (gRes.data || []).map(mapGcemFromDB);
+      } else throw gRes.error;
+    } else {
+      loadLocalBackup();
+    }
+  } catch (e) {
+    console.error('Load error:', e);
+    loadLocalBackup();
+    setSyncStatus(false, 'Erro — dados locais');
+  }
+  hideLoader();
+  updateHeader();
+  renderVisitors();
+  renderGcems();
+  renderDashboard();
+}
+
+function mapVisitorFromDB(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    whatsapp: r.whatsapp,
+    age: r.age,
+    civil: r.civil,
+    neighborhood: r.neighborhood,
+    address: r.address,
+    coords: r.lat && r.lng ? { lat: parseFloat(r.lat), lng: parseFloat(r.lng) } : null,
+    gcemInterest: r.gcem_interest,
+    prayer: r.prayer,
+    date: r.visit_date || new Date(r.created_at).toLocaleDateString('pt-BR'),
+    assignedGcem: r.assigned_gcem_id,
+    created_at: r.created_at
+  };
+}
+
+function mapGcemFromDB(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    leader: r.leader,
+    whatsapp: r.whatsapp,
+    address: r.address,
+    coords: r.lat && r.lng ? { lat: parseFloat(r.lat), lng: parseFloat(r.lng) } : null,
+    day: r.day,
+    time: r.time,
+    created_at: r.created_at
+  };
+}
+
+function saveLocalBackup() {
+  try {
+    localStorage.setItem('mi_v3', JSON.stringify(visitors));
+    localStorage.setItem('mi_g3', JSON.stringify(gcems));
+  } catch(e){}
+}
+function loadLocalBackup() {
+  try { var v = localStorage.getItem('mi_v3'); if (v) visitors = JSON.parse(v); } catch(e){}
+  try { var g = localStorage.getItem('mi_g3'); if (g) gcems = JSON.parse(g); } catch(e){}
+}
+
+async function saveVisitorToDB(v) {
+  if (!dbReady || !supabase_client) { saveLocalBackup(); return v.id || Date.now().toString(); }
+  const payload = {
+    name: v.name, whatsapp: v.whatsapp, age: v.age || null,
+    civil: v.civil || null, neighborhood: v.neighborhood || null,
+    address: v.address || null,
+    lat: v.coords ? v.coords.lat : null, lng: v.coords ? v.coords.lng : null,
+    gcem_interest: v.gcemInterest || null, prayer: v.prayer || null,
+    visit_date: v.date, assigned_gcem_id: v.assignedGcem || null
+  };
+  if (v.id && isUUID(v.id)) {
+    const { data, error } = await supabase_client.from('visitors').update(payload).eq('id', v.id).select().single();
+    if (error) throw error;
+    return data.id;
+  } else {
+    const { data, error } = await supabase_client.from('visitors').insert(payload).select().single();
+    if (error) throw error;
+    return data.id;
+  }
+}
+
+async function saveGcemToDB(g) {
+  if (!dbReady || !supabase_client) { saveLocalBackup(); return g.id || Date.now().toString(); }
+  const payload = {
+    name: g.name, leader: g.leader || null, whatsapp: g.whatsapp,
+    address: g.address,
+    lat: g.coords ? g.coords.lat : null, lng: g.coords ? g.coords.lng : null,
+    day: g.day || null, time: g.time || null
+  };
+  if (g.id && isUUID(g.id)) {
+    const { data, error } = await supabase_client.from('gcems').update(payload).eq('id', g.id).select().single();
+    if (error) throw error;
+    return data.id;
+  } else {
+    const { data, error } = await supabase_client.from('gcems').insert(payload).select().single();
+    if (error) throw error;
+    return data.id;
+  }
+}
+
+async function deleteVisitorFromDB(id) {
+  if (!dbReady || !supabase_client) return;
+  if (!isUUID(id)) return;
+  await supabase_client.from('visitors').delete().eq('id', id);
+}
+async function deleteGcemFromDB(id) {
+  if (!dbReady || !supabase_client) return;
+  if (!isUUID(id)) return;
+  await supabase_client.from('gcems').delete().eq('id', id);
+}
+
+function isUUID(str) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showTab(n) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-content-' + n).classList.add('active');
+  document.getElementById('tab-' + n).classList.add('active');
+  if (n === 'lista') renderVisitors();
+  if (n === 'gcems') renderGcems();
+  if (n === 'mapa') setTimeout(initMap, 250);
+  if (n === 'dashboard') renderDashboard();
+}
+
+function showAlert(id, type, msg) {
+  var el = document.getElementById(id);
+  el.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+function showLoader(msg) { document.getElementById('loader-text').textContent = msg || 'Processando...'; document.getElementById('loader').classList.add('show'); }
+function hideLoader() { document.getElementById('loader').classList.remove('show'); }
+
+function showToast(msg, type, duration) {
+  type = type || 'success'; duration = duration || 3500;
+  var c = document.getElementById('toast-container');
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  var icon = type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️';
+  t.innerHTML = '<span>' + icon + '</span><span>' + msg + '</span>';
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut .3s ease forwards'; setTimeout(() => t.remove(), 300); }, duration);
+}
+
+function maskPhone(el) {
+  var v = el.value.replace(/\D/g, '').substring(0, 11);
+  if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+  else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d*).*/, '($1) $2-$3');
+  else if (v.length > 2) v = v.replace(/^(\d{2})(\d*).*/, '($1) $2');
+  else if (v.length) v = '(' + v;
+  el.value = v;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function updateHeader() {
+  document.getElementById('hd-visitors').textContent = visitors.length;
+  document.getElementById('hd-gcems').textContent = gcems.length;
+}
+
+// ============================================================
+// GEOCODING (Nominatim)
+// ============================================================
+async function geocode(addr) {
+  try {
+    var q = encodeURIComponent(addr + ', Paranaguá, Paraná, Brasil');
+    var url = 'https://nominatim.openstreetmap.org/search?q=' + q + '&format=json&limit=1&accept-language=pt-BR&countrycodes=br';
+    var r = await fetch(url, { headers: { 'User-Agent': 'MinisterioIntegracao/2.0' } });
+    var d = await r.json();
+    if (d && d.length > 0) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+  } catch(e) {}
+  return null;
+}
+
+function haversine(c1, c2) {
+  var R = 6371, dLat = (c2.lat - c1.lat) * Math.PI / 180, dLon = (c2.lng - c1.lng) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(c1.lat*Math.PI/180)*Math.cos(c2.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function findNearest(coords) {
+  var best = null, bd = Infinity;
+  gcems.forEach(g => { if (g.coords) { var d = haversine(coords, g.coords); if (d < bd) { bd = d; best = {gcem: g, dist: d}; } } });
+  return best;
+}
+
+// ============================================================
+// SAVE VISITOR
+// ============================================================
+async function saveVisitor() {
+  var name = document.getElementById('v-name').value.trim();
+  var whats = document.getElementById('v-whats').value.trim();
+  if (!name || !whats) { showAlert('alert-visitor', 'error', '⚠️ Nome e WhatsApp são obrigatórios!'); return; }
+  showLoader('Cadastrando visitante...');
+  var address = document.getElementById('v-address').value.trim();
+  var coords = null;
+  if (address) {
+    var st = document.getElementById('v-geo-status');
+    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    coords = await geocode(address);
+    st.textContent = coords ? '✓ Localizado no mapa' : '✗ Endereço não encontrado';
+    st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-fail');
+  }
+  var v = {
+    id: null,
+    name, whatsapp: whats,
+    age: document.getElementById('v-age').value,
+    civil: document.getElementById('v-civil').value,
+    neighborhood: document.getElementById('v-neighborhood').value.trim(),
+    address, coords,
+    gcemInterest: document.getElementById('v-gcem-interest').value,
+    prayer: document.getElementById('v-prayer').value.trim(),
+    date: new Date().toLocaleDateString('pt-BR'),
+    assignedGcem: null
+  };
+  try {
+    var newId = await saveVisitorToDB(v);
+    v.id = newId;
+    visitors.unshift(v);
+    saveLocalBackup();
+    hideLoader();
+    showToast('Visitante <strong>' + name + '</strong> cadastrado!', 'success');
+    clearVisitorForm();
+    updateHeader();
+    renderDashboard();
+  } catch(e) {
+    hideLoader();
+    console.error(e);
+    showAlert('alert-visitor', 'error', '⚠️ Erro ao salvar: ' + (e.message || 'tente novamente'));
+  }
+}
+
+function clearVisitorForm() {
+  ['v-name','v-whats','v-age','v-neighborhood','v-address','v-prayer'].forEach(id => document.getElementById(id).value = '');
+  ['v-civil','v-gcem-interest'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  document.getElementById('v-geo-status').style.display = 'none';
+}
+
+// ============================================================
+// EDIT VISITOR
+// ============================================================
+function openEditVisitor(id) {
+  var v = visitors.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('edit-v-id').value = v.id;
+  document.getElementById('edit-v-name').value = v.name || '';
+  document.getElementById('edit-v-whats').value = v.whatsapp || '';
+  document.getElementById('edit-v-age').value = v.age || '';
+  document.getElementById('edit-v-civil').value = v.civil || '';
+  document.getElementById('edit-v-neighborhood').value = v.neighborhood || '';
+  document.getElementById('edit-v-address').value = v.address || '';
+  document.getElementById('edit-v-gcem-interest').value = v.gcemInterest || '';
+  document.getElementById('edit-v-prayer').value = v.prayer || '';
+  document.getElementById('edit-v-geo-status').style.display = 'none';
+  openModal('modal-visitor');
+}
+
+async function saveEditVisitor() {
+  var id = document.getElementById('edit-v-id').value;
+  var v = visitors.find(x => x.id === id);
+  if (!v) return;
+  var name = document.getElementById('edit-v-name').value.trim();
+  var whats = document.getElementById('edit-v-whats').value.trim();
+  if (!name || !whats) { showToast('Nome e WhatsApp são obrigatórios!', 'error'); return; }
+  showLoader('Salvando...');
+  var newAddr = document.getElementById('edit-v-address').value.trim();
+  if (newAddr !== v.address) {
+    var st = document.getElementById('edit-v-geo-status');
+    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    v.coords = newAddr ? await geocode(newAddr) : null;
+    st.textContent = v.coords ? '✓ Localizado' : '✗ Não encontrado';
+    st.className = 'geo-status ' + (v.coords ? 'geo-ok' : 'geo-fail');
+  }
+  v.name = name; v.whatsapp = whats;
+  v.age = document.getElementById('edit-v-age').value;
+  v.civil = document.getElementById('edit-v-civil').value;
+  v.neighborhood = document.getElementById('edit-v-neighborhood').value.trim();
+  v.address = newAddr;
+  v.gcemInterest = document.getElementById('edit-v-gcem-interest').value;
+  v.prayer = document.getElementById('edit-v-prayer').value.trim();
+  try {
+    await saveVisitorToDB(v);
+    saveLocalBackup();
+    hideLoader();
+    closeModal('modal-visitor');
+    renderVisitors();
+    renderDashboard();
+    showToast('Visitante atualizado!', 'success');
+  } catch(e) {
+    hideLoader();
+    showToast('Erro ao salvar: ' + (e.message || ''), 'error');
+  }
+}
+
+// ============================================================
+// SAVE GCEM
+// ============================================================
+async function saveGcem() {
+  var name = document.getElementById('g-name').value.trim();
+  var whats = document.getElementById('g-whats').value.trim();
+  var address = document.getElementById('g-address').value.trim();
+  if (!name || !whats || !address) { showAlert('alert-gcem', 'error', '⚠️ Nome, WhatsApp e endereço são obrigatórios!'); return; }
+  showLoader('Localizando endereço do GCEM...');
+  var st = document.getElementById('g-geo-status');
+  st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+  var coords = await geocode(address);
+  st.textContent = coords ? '✓ Localizado no mapa' : '✗ Endereço não encontrado — verifique';
+  st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-fail');
+  var g = {
+    id: null, name,
+    leader: document.getElementById('g-leader').value.trim(),
+    whatsapp: whats, address, coords,
+    day: document.getElementById('g-day').value,
+    time: document.getElementById('g-time').value
+  };
+  try {
+    var newId = await saveGcemToDB(g);
+    g.id = newId;
+    gcems.push(g);
+    saveLocalBackup();
+    hideLoader();
+    renderGcems();
+    showToast('GCEM <strong>' + name + '</strong> cadastrado' + (coords ? ' com localização!' : '!'), 'success');
+    ['g-name','g-leader','g-whats','g-address','g-time'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('g-day').selectedIndex = 0;
+    document.getElementById('g-geo-status').style.display = 'none';
+    updateHeader();
+    renderDashboard();
+  } catch(e) {
+    hideLoader();
+    showAlert('alert-gcem', 'error', '⚠️ Erro: ' + (e.message || 'tente novamente'));
+  }
+}
+
+// ============================================================
+// EDIT GCEM
+// ============================================================
+function openEditGcem(id) {
+  var g = gcems.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('edit-g-id').value = g.id;
+  document.getElementById('edit-g-name').value = g.name || '';
+  document.getElementById('edit-g-leader').value = g.leader || '';
+  document.getElementById('edit-g-whats').value = g.whatsapp || '';
+  document.getElementById('edit-g-address').value = g.address || '';
+  document.getElementById('edit-g-day').value = g.day || '';
+  document.getElementById('edit-g-time').value = g.time || '';
+  document.getElementById('edit-g-geo-status').style.display = 'none';
+  openModal('modal-gcem');
+}
+
+async function saveEditGcem() {
+  var id = document.getElementById('edit-g-id').value;
+  var g = gcems.find(x => x.id === id);
+  if (!g) return;
+  var name = document.getElementById('edit-g-name').value.trim();
+  var whats = document.getElementById('edit-g-whats').value.trim();
+  var address = document.getElementById('edit-g-address').value.trim();
+  if (!name || !whats || !address) { showToast('Preencha os campos obrigatórios!', 'error'); return; }
+  showLoader('Salvando...');
+  if (address !== g.address) {
+    var st = document.getElementById('edit-g-geo-status');
+    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    g.coords = await geocode(address);
+    st.textContent = g.coords ? '✓ Localizado' : '✗ Não encontrado';
+    st.className = 'geo-status ' + (g.coords ? 'geo-ok' : 'geo-fail');
+  }
+  g.name = name; g.leader = document.getElementById('edit-g-leader').value.trim();
+  g.whatsapp = whats; g.address = address;
+  g.day = document.getElementById('edit-g-day').value;
+  g.time = document.getElementById('edit-g-time').value;
+  try {
+    await saveGcemToDB(g);
+    saveLocalBackup();
+    hideLoader();
+    closeModal('modal-gcem');
+    renderGcems();
+    showToast('GCEM atualizado!', 'success');
+  } catch(e) {
+    hideLoader();
+    showToast('Erro: ' + (e.message || ''), 'error');
+  }
+}
+
+// ============================================================
+// DELETE
+// ============================================================
+async function deleteVisitor(id) {
+  if (!confirm('Excluir este visitante? Esta ação não pode ser desfeita.')) return;
+  showLoader('Excluindo...');
+  try {
+    await deleteVisitorFromDB(id);
+    visitors = visitors.filter(v => v.id !== id);
+    saveLocalBackup();
+    hideLoader();
+    renderVisitors();
+    renderDashboard();
+    updateHeader();
+    showToast('Visitante removido.', 'info');
+  } catch(e) {
+    hideLoader();
+    showToast('Erro ao excluir.', 'error');
+  }
+}
+async function deleteGcem(id) {
+  if (!confirm('Excluir este GCEM?')) return;
+  showLoader('Excluindo...');
+  try {
+    await deleteGcemFromDB(id);
+    gcems = gcems.filter(g => g.id !== id);
+    saveLocalBackup();
+    hideLoader();
+    renderGcems();
+    updateHeader();
+    showToast('GCEM removido.', 'info');
+  } catch(e) {
+    hideLoader();
+    showToast('Erro ao excluir.', 'error');
+  }
+}
+
+// ============================================================
+// WHATSAPP
+// ============================================================
+function buildMsg(v, g) {
+  return '✝ *MINISTÉRIO DE INTEGRAÇÃO*\n*Comunidade da Graça — Paranaguá*\n\n' +
+    'Olá' + (g.leader ? ', ' + g.leader : '') + ' 👋\n' +
+    'Um novo visitante foi encaminhado para o *' + g.name + '*:\n\n' +
+    '👤 *Nome:* ' + v.name + '\n' +
+    '📱 *WhatsApp:* ' + v.whatsapp + '\n' +
+    (v.age ? '🎂 *Idade:* ' + v.age + ' anos\n' : '') +
+    (v.civil ? '💍 *Estado Civil:* ' + v.civil + '\n' : '') +
+    (v.neighborhood ? '📍 *Bairro:* ' + v.neighborhood + '\n' : '') +
+    (v.gcemInterest ? '⛪ *Interesse em GCEM:* ' + v.gcemInterest + '\n' : '') +
+    (v.prayer ? '\n🙏 *Pedido de Oração:*\n_' + v.prayer + '_\n' : '') +
+    '\n_Encaminhado pelo Ministério de Integração · ' + v.date + '_';
+}
+
+async function sendToWhatsapp(visitorId, gcemId) {
+  var v = visitors.find(x => x.id === visitorId);
+  var g = gcems.find(x => x.id === gcemId);
+  if (!v || !g) { showToast('Selecione um GCEM!', 'error'); return; }
+  window.open('https://wa.me/55' + g.whatsapp.replace(/\D/g, '') + '?text=' + encodeURIComponent(buildMsg(v, g)), '_blank');
+  v.assignedGcem = gcemId;
+  try {
+    await saveVisitorToDB(v);
+    saveLocalBackup();
+    renderVisitors();
+    renderDashboard();
+    showToast(v.name + ' encaminhado para ' + g.name, 'success');
+  } catch(e) { console.error(e); }
+}
+
+function whatsappDirect(visitorId) {
+  var v = visitors.find(x => x.id === visitorId);
+  if (v) window.open('https://wa.me/55' + v.whatsapp.replace(/\D/g, ''), '_blank');
+}
+
+// ============================================================
+// RENDER VISITORS
+// ============================================================
+function renderVisitors() {
+  var el = document.getElementById('visitors-list');
+  var search = (document.getElementById('search-visitor') || {}).value || '';
+  var filter = (document.getElementById('filter-gcem-interest') || {}).value || '';
+  var list = visitors.filter(v => {
+    var matchSearch = !search || v.name.toLowerCase().includes(search.toLowerCase());
+    var matchFilter = true;
+    if (filter === 'sem-encaminhar') matchFilter = !v.assignedGcem;
+    else if (filter) matchFilter = v.gcemInterest === filter;
+    return matchSearch && matchFilter;
+  });
+  document.getElementById('sum-total').textContent = visitors.length;
+  document.getElementById('sum-interest').textContent = visitors.filter(v => v.gcemInterest === 'Sim, tenho interesse').length;
+  document.getElementById('sum-assigned').textContent = visitors.filter(v => v.assignedGcem).length;
+  document.getElementById('sum-prayer').textContent = visitors.filter(v => v.prayer && v.prayer.length > 0).length;
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">' + (visitors.length ? 'Nenhum resultado encontrado' : 'Nenhum visitante cadastrado ainda') + '</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(v => {
+    var initials = v.name.split(' ').slice(0, 2).map(n => n[0] || '').join('').toUpperCase();
+    var assigned = v.assignedGcem ? gcems.find(g => g.id === v.assignedGcem) : null;
+    var opts = gcems.map(g => '<option value="' + g.id + '"' + (v.assignedGcem === g.id ? ' selected' : '') + '>' + g.name + '</option>').join('');
+    return '<div class="visitor-card">' +
+      '<div class="vc-header">' +
+        '<div class="vc-avatar">' + initials + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="vc-name">' + v.name + '</div>' +
+          '<div class="vc-date">📅 ' + v.date +
+            (assigned ? '&nbsp;&nbsp;<span class="badge badge-green">✓ ' + assigned.name + '</span>' : '&nbsp;&nbsp;<span class="badge badge-gray">Não encaminhado</span>') +
+          '</div>' +
+        '</div>' +
+        (v.coords ? '<span class="badge badge-red" style="flex-shrink:0">📍 Mapa</span>' : '') +
+      '</div>' +
+      '<div class="vc-info">' +
+        (v.whatsapp ? '<span class="vc-field">📱 ' + v.whatsapp + '</span>' : '') +
+        (v.age ? '<span class="vc-field">🎂 ' + v.age + ' anos</span>' : '') +
+        (v.civil ? '<span class="vc-field">💍 ' + v.civil + '</span>' : '') +
+        (v.neighborhood ? '<span class="vc-field">📍 ' + v.neighborhood + '</span>' : '') +
+        (v.gcemInterest ? '<span class="vc-field">⛪ ' + v.gcemInterest + '</span>' : '') +
+      '</div>' +
+      (v.prayer ? '<div class="vc-prayer">🙏 ' + v.prayer + '</div>' : '') +
+      '<div class="vc-actions">' +
+        (gcems.length ?
+          '<select class="gcem-select" id="sel-' + v.id + '"><option value="">— Selecionar GCEM —</option>' + opts + '</select>' +
+          '<button class="btn btn-primary btn-sm" onclick="var s=document.getElementById(\'sel-' + v.id + '\');if(!s.value){showToast(\'Selecione um GCEM!\',\'error\');}else{sendToWhatsapp(\'' + v.id + '\',s.value)}">📤 Encaminhar</button>' :
+          '<span style="font-size:12px;color:var(--muted)">Cadastre GCEMs primeiro</span>') +
+        '<button class="btn btn-outline btn-sm" onclick="whatsappDirect(\'' + v.id + '\')">💬 Falar</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="openEditVisitor(\'' + v.id + '\')">✏️ Editar</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteVisitor(\'' + v.id + '\')">🗑</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ============================================================
+// RENDER GCEMS
+// ============================================================
+function renderGcems() {
+  var el = document.getElementById('gcems-list');
+  document.getElementById('gcem-count-badge').textContent = gcems.length;
+  if (!gcems.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🏠</div><div class="empty-text">Nenhum GCEM cadastrado</div></div>'; return; }
+  el.innerHTML = gcems.map(g => {
+    var visitCount = visitors.filter(v => v.assignedGcem === g.id).length;
+    return '<div class="gcem-card">' +
+      '<div class="gcem-accent"></div>' +
+      '<div class="gcem-info">' +
+        '<div class="gcem-name">' + g.name + (visitCount ? ' <span class="badge badge-gold">' + visitCount + ' visitante' + (visitCount > 1 ? 's' : '') + '</span>' : '') + '</div>' +
+        '<div class="gcem-detail">👤 ' + (g.leader || 'Líder não informado') + '&nbsp;·&nbsp;📱 ' + g.whatsapp + '</div>' +
+        '<div class="gcem-detail">📍 ' + g.address + (g.day ? '&nbsp;·&nbsp;⏰ ' + g.day + (g.time ? ' às ' + g.time : '') : '') + '</div>' +
+        (g.coords ? '<span class="badge badge-green" style="margin-top:5px">📍 No mapa</span>' : '<span class="badge badge-gray" style="margin-top:5px">Sem localização</span>') +
+      '</div>' +
+      '<div class="gcem-actions">' +
+        '<a href="https://wa.me/55' + g.whatsapp.replace(/\D/g, '') + '" target="_blank" class="btn btn-whatsapp btn-sm">💬</a>' +
+        '<button class="btn btn-outline btn-sm" onclick="openEditGcem(\'' + g.id + '\')">✏️</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteGcem(\'' + g.id + '\')">🗑</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ============================================================
+// RENDER DASHBOARD
+// ============================================================
+function renderDashboard() {
+  document.getElementById('dash-total').textContent = visitors.length;
+  document.getElementById('dash-interest').textContent = visitors.filter(v => v.gcemInterest === 'Sim, tenho interesse').length;
+  document.getElementById('dash-assigned').textContent = visitors.filter(v => v.assignedGcem).length;
+  document.getElementById('dash-prayer').textContent = visitors.filter(v => v.prayer && v.prayer.length > 0).length;
+  document.getElementById('dash-gcems').textContent = gcems.length;
+  document.getElementById('dash-mapped').textContent = visitors.filter(v => v.coords).length;
+
+  // Recent visitors
+  var recent = visitors.slice(0, 5);
+  var rv = document.getElementById('dash-recent-visitors');
+  if (!recent.length) {
+    rv.innerHTML = '<div class="empty" style="padding:20px"><div class="empty-icon" style="font-size:28px">📋</div><div class="empty-text">Nenhum visitante ainda</div></div>';
+  } else {
+    rv.innerHTML = recent.map(v => {
+      var initials = v.name.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase();
+      return '<div class="activity-item"><div class="vc-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0">' + initials + '</div>' +
+        '<div style="flex:1;min-width:0"><div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + v.name + '</div>' +
+        '<div style="font-size:11px;color:var(--muted)">' + v.date + (v.assignedGcem ? ' · ✓ Encaminhado' : '') + '</div></div></div>';
+    }).join('');
+  }
+
+  // Pending
+  var pending = visitors.filter(v => !v.assignedGcem && (v.gcemInterest === 'Sim, tenho interesse' || v.gcemInterest === 'Talvez, quero saber mais'));
+  var pd = document.getElementById('dash-pending');
+  if (!pending.length) {
+    pd.innerHTML = '<div class="activity-item" style="border:none;color:var(--green)">✅ Todos os interessados foram encaminhados!</div>';
+  } else {
+    pd.innerHTML = pending.slice(0, 6).map(v =>
+      '<div class="activity-item"><div class="activity-dot"></div>' +
+      '<div style="flex:1;min-width:0"><div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + v.name + '</div>' +
+      '<div style="font-size:11px;color:var(--muted)">' + (v.gcemInterest || '') + '</div></div>' +
+      '<button class="btn btn-primary btn-sm" onclick="showTab(\'lista\')" style="flex-shrink:0">Ver</button></div>'
+    ).join('');
+  }
+}
+
+// ============================================================
+// MAP (Google Maps)
+// ============================================================
+var googleMapsLoaded = false;
+var mapInitQueue = false;
+
+function loadGoogleMaps() {
+  if (googleMapsLoaded || document.getElementById('gm-script')) return;
+  var script = document.createElement('script');
+  script.id = 'gm-script';
+  // Google Maps API key — substitua pela sua key real
+  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&callback=onGoogleMapsReady&language=pt-BR';
+  script.async = true;
+  script.defer = true;
+  document.head.appendChild(script);
+}
+
+window.onGoogleMapsReady = function() {
+  googleMapsLoaded = true;
+  if (mapInitQueue) { initMap(); mapInitQueue = false; }
+};
+
+function initMap() {
+  if (!googleMapsLoaded) { loadGoogleMaps(); mapInitQueue = true; return; }
+  var mapEl = document.getElementById('map');
+  if (!mapEl) return;
+
+  // Clear old markers
+  draggableMarkers.forEach(m => m.setMap(null));
+  draggableMarkers = [];
+  if (mapInstance) { /* reuse */ }
+
+  var centerLatLng = { lat: CHURCH.lat, lng: CHURCH.lng };
+
+  if (!mapInstance) {
+    mapInstance = new google.maps.Map(mapEl, {
+      center: centerLatLng,
+      zoom: 14,
+      mapTypeControl: false,
+      fullscreenControl: true,
+      streetViewControl: false,
+      styles: [
+        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+        { featureType: 'transit', stylers: [{ visibility: 'simplified' }] }
+      ]
+    });
+    // Click handler for adding markers
+    mapInstance.addListener('click', function(e) {
+      if (!addingMarker) return;
+      document.getElementById('marker-lat').value = e.latLng.lat().toFixed(6);
+      document.getElementById('marker-lng').value = e.latLng.lng().toFixed(6);
+      document.getElementById('btn-save-marker').disabled = false;
+      document.getElementById('map-edit-title-text').textContent = 'Posição selecionada — clique em Salvar';
+      if (tempMarker) tempMarker.setMap(null);
+      tempMarker = new google.maps.Marker({
+        position: e.latLng, map: mapInstance,
+        icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: '#B71C1C', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2, scale: 9 },
+        title: 'Nova posição', zIndex: 999
+      });
+    });
+  } else {
+    // Clear existing content
+    mapInstance.setCenter(centerLatLng);
+  }
+
+  var bounds = new google.maps.LatLngBounds();
+  var infoWindow = new google.maps.InfoWindow();
+
+  // Church marker
+  var churchMarker = new google.maps.Marker({
+    position: { lat: CHURCH.lat, lng: CHURCH.lng },
+    map: mapInstance,
+    title: CHURCH.name,
+    icon: {
+      path: 'M12,2L12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10-4.48 10-10S17.52,2 12,2z',
+      fillColor: '#B71C1C', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2.5,
+      scale: 1.4, anchor: new google.maps.Point(12, 12)
+    },
+    zIndex: 10
+  });
+  churchMarker.addListener('click', () => {
+    infoWindow.setContent('<div style="font-family:DM Sans,sans-serif;padding:4px 2px;min-width:180px"><strong style="color:#B71C1C;font-size:14px">✝ ' + CHURCH.name + '</strong><br><span style="font-size:12px;color:#666">' + CHURCH.address + '</span></div>');
+    infoWindow.open(mapInstance, churchMarker);
+  });
+  bounds.extend({ lat: CHURCH.lat, lng: CHURCH.lng });
+  draggableMarkers.push(churchMarker);
+
+  // GCEM markers
+  gcems.forEach(g => {
+    if (!g.coords) return;
+    var pos = { lat: g.coords.lat, lng: g.coords.lng };
+    bounds.extend(pos);
+    var marker = new google.maps.Marker({
+      position: pos, map: mapInstance, title: g.name, draggable: true,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#1A6B3C', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2.5, scale: 11
+      },
+      label: { text: '🏠', fontSize: '14px' },
+      zIndex: 5
+    });
+    var visitCount = visitors.filter(v => v.assignedGcem === g.id).length;
+    marker.addListener('click', () => {
+      infoWindow.setContent('<div style="font-family:DM Sans,sans-serif;padding:4px 2px;min-width:190px">' +
+        '<strong style="color:#1A6B3C;font-size:14px">🏠 ' + g.name + '</strong><br>' +
+        '👤 ' + (g.leader || '—') + '<br>' +
+        '📱 <a href="https://wa.me/55' + g.whatsapp.replace(/\D/g,'') + '" target="_blank">' + g.whatsapp + '</a>' +
+        (g.day ? '<br>⏰ ' + g.day + (g.time ? ' às ' + g.time : '') : '') +
+        (visitCount ? '<br><span style="color:#1A6B3C;font-weight:600">👥 ' + visitCount + ' visitante(s) encaminhado(s)</span>' : '') +
+        '<br><small style="color:#888">' + g.address + '</small>' +
+        '<br><button onclick="openEditGcem(\'' + g.id + '\')" style="margin-top:6px;padding:4px 10px;background:#1A6B3C;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">✏️ Editar GCEM</button>' +
+        '</div>');
+      infoWindow.open(mapInstance, marker);
+    });
+    // Drag to update position
+    marker.addListener('dragend', async function(e) {
+      g.coords = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+      try {
+        await saveGcemToDB(g);
+        saveLocalBackup();
+        showToast('Posição do ' + g.name + ' atualizada!', 'success');
+      } catch(err) { showToast('Erro ao salvar posição', 'error'); }
+    });
+    draggableMarkers.push(marker);
+  });
+
+  // Visitor markers + polylines
+  var suggestions = [];
+  visitors.forEach(v => {
+    if (!v.coords) return;
+    var pos = { lat: v.coords.lat, lng: v.coords.lng };
+    bounds.extend(pos);
+    var nearest = findNearest(v.coords);
+    var marker = new google.maps.Marker({
+      position: pos, map: mapInstance, title: v.name, draggable: true,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#C8860A', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2, scale: 9
+      },
+      zIndex: 3
+    });
+    var assigned = v.assignedGcem ? gcems.find(g => g.id === v.assignedGcem) : null;
+    marker.addListener('click', () => {
+      infoWindow.setContent('<div style="font-family:DM Sans,sans-serif;padding:4px 2px;min-width:180px">' +
+        '<strong style="color:#C8860A;font-size:14px">👤 ' + v.name + '</strong><br>' +
+        '📱 <a href="https://wa.me/55' + v.whatsapp.replace(/\D/g,'') + '" target="_blank">' + v.whatsapp + '</a>' +
+        (v.neighborhood ? '<br>📍 ' + v.neighborhood : '') +
+        (assigned ? '<br><span style="color:#1A6B3C;font-weight:600">✓ GCEM: ' + assigned.name + '</span>' : '') +
+        (nearest && !assigned ? '<br><small style="color:#555">🏠 Mais próximo: <strong>' + nearest.gcem.name + '</strong> (' + nearest.dist.toFixed(1) + ' km)</small>' : '') +
+        '<br><button onclick="openEditVisitor(\'' + v.id + '\')" style="margin-top:6px;padding:4px 10px;background:#C8860A;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">✏️ Editar</button>' +
+        '</div>');
+      infoWindow.open(mapInstance, marker);
+    });
+    // Drag to update position
+    marker.addListener('dragend', async function(e) {
+      v.coords = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+      try {
+        await saveVisitorToDB(v);
+        saveLocalBackup();
+        showToast('Posição de ' + v.name + ' atualizada!', 'success');
+      } catch(err) { showToast('Erro ao salvar posição', 'error'); }
+    });
+    draggableMarkers.push(marker);
+    // Polyline to nearest GCEM
+    if (nearest && nearest.gcem.coords) {
+      new google.maps.Polyline({
+        path: [{ lat: v.coords.lat, lng: v.coords.lng }, { lat: nearest.gcem.coords.lat, lng: nearest.gcem.coords.lng }],
+        map: mapInstance, strokeColor: '#C8860A', strokeOpacity: 0.5, strokeWeight: 2,
+        icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '12px' }]
+      });
+    }
+    if (nearest && !v.assignedGcem) suggestions.push({ visitor: v, nearest });
+  });
+
+  // Fit bounds
+  if (!bounds.isEmpty()) {
+    var hasPoints = gcems.some(g => g.coords) || visitors.some(v => v.coords);
+    if (hasPoints) mapInstance.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+    else mapInstance.setCenter(centerLatLng);
+  }
+
+  // Suggestions
+  var sg = document.getElementById('map-suggestions');
+  var sl = document.getElementById('suggestions-list');
+  if (suggestions.length) {
+    sg.style.display = 'block';
+    sl.innerHTML = suggestions.map(s =>
+      '<div class="gcem-card">' +
+      '<div class="gcem-accent" style="background:#C8860A"></div>' +
+      '<div class="gcem-info">' +
+        '<div class="gcem-name">👤 ' + s.visitor.name + '</div>' +
+        '<div class="gcem-detail">GCEM mais próximo: <strong>' + s.nearest.gcem.name + '</strong> — ' + s.nearest.dist.toFixed(1) + ' km</div>' +
+        '<div class="gcem-detail">Líder: ' + (s.nearest.gcem.leader || '—') + ' · ' + s.nearest.gcem.whatsapp + '</div>' +
+      '</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="sendToWhatsapp(\'' + s.visitor.id + '\',\'' + s.nearest.gcem.id + '\')">📤 Encaminhar</button>' +
+      '</div>'
+    ).join('');
+  } else {
+    sg.style.display = 'none';
+  }
+}
+
+// ============================================================
+// MAP — ADD/EDIT MARKERS
+// ============================================================
+function toggleAddMarker() {
+  addingMarker = !addingMarker;
+  var panel = document.getElementById('map-edit-panel');
+  var btn = document.getElementById('btn-add-marker');
+  if (addingMarker) {
+    panel.classList.add('show');
+    btn.textContent = '✕ Cancelar adição';
+    btn.className = 'btn btn-danger btn-sm';
+    document.getElementById('map-edit-title-text').textContent = 'Clique no mapa para posicionar o marcador';
+    document.getElementById('marker-lat').value = '';
+    document.getElementById('marker-lng').value = '';
+    document.getElementById('btn-save-marker').disabled = true;
+    // Populate link select
+    populateMarkerLink();
+    showToast('Clique no mapa para posicionar o novo marcador', 'info');
+  } else {
+    cancelAddMarker();
+  }
+}
+
+function cancelAddMarker() {
+  addingMarker = false;
+  document.getElementById('map-edit-panel').classList.remove('show');
+  var btn = document.getElementById('btn-add-marker');
+  btn.textContent = '📍 Adicionar Marcador';
+  btn.className = 'btn btn-outline btn-sm';
+  if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
+}
+
+function populateMarkerLink() {
+  var type = document.getElementById('marker-type').value;
+  var sel = document.getElementById('marker-link');
+  sel.innerHTML = '<option value="">Selecione...</option>';
+  var items = type === 'visitor' ? visitors : gcems;
+  items.forEach(item => {
+    sel.innerHTML += '<option value="' + item.id + '">' + item.name + '</option>';
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  var mt = document.getElementById('marker-type');
+  if (mt) mt.addEventListener('change', populateMarkerLink);
+});
+
+async function saveMarkerPosition() {
+  var lat = parseFloat(document.getElementById('marker-lat').value);
+  var lng = parseFloat(document.getElementById('marker-lng').value);
+  var type = document.getElementById('marker-type').value;
+  var linkId = document.getElementById('marker-link').value;
+  if (!linkId) { showToast('Selecione a quem vincular o marcador!', 'error'); return; }
+  if (!lat || !lng) { showToast('Selecione a posição no mapa!', 'error'); return; }
+  showLoader('Salvando posição...');
+  try {
+    if (type === 'visitor') {
+      var v = visitors.find(x => x.id === linkId);
+      if (!v) { hideLoader(); return; }
+      v.coords = { lat, lng };
+      await saveVisitorToDB(v);
+      showToast('Posição de ' + v.name + ' salva!', 'success');
+    } else {
+      var g = gcems.find(x => x.id === linkId);
+      if (!g) { hideLoader(); return; }
+      g.coords = { lat, lng };
+      await saveGcemToDB(g);
+      showToast('Posição do ' + g.name + ' salva!', 'success');
+    }
+    saveLocalBackup();
+    hideLoader();
+    cancelAddMarker();
+    initMap();
+  } catch(e) {
+    hideLoader();
+    showToast('Erro ao salvar: ' + (e.message || ''), 'error');
+  }
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ============================================================
+// BOOTSTRAP
+// ============================================================
+async function bootstrap() {
+  showLoader('Inicializando...');
+  loadGoogleMaps();
+  await initSupabase();
+  await loadData();
+}
+
+bootstrap();
+</script>
+</body>
+</html>
