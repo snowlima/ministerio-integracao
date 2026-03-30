@@ -7,8 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -218,11 +216,10 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <div class="form-group"><label>Bairro</label><input id="edit-v-neighborhood" type="text"></div>
     </div>
     <div class="form-group">
-      <label>Bairro <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(usado para localização no mapa)</span></label>
-      <input id="edit-v-neighborhood2" type="text" placeholder="Bairro onde mora">
+      <label>Endereço</label>
+      <input id="edit-v-address" type="text">
       <span id="edit-v-geo-status" class="geo-status" style="display:none"></span>
     </div>
-    <input type="hidden" id="edit-v-address" value="">
     <div class="form-group"><label>Interesse em GCEM</label>
       <select id="edit-v-gcem-interest">
         <option value="">Selecione...</option>
@@ -250,10 +247,16 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
       <div class="form-group"><label>Líder</label><input id="edit-g-leader" type="text"></div>
       <div class="form-group"><label>WhatsApp *</label><input id="edit-g-whats" type="tel" oninput="maskPhone(this)"></div>
     </div>
-    <div class="form-group">
-      <label>Endereço *</label>
-      <input id="edit-g-address" type="text">
-      <span id="edit-g-geo-status" class="geo-status" style="display:none"></span>
+    <div class="form-row cols2">
+      <div class="form-group">
+        <label>Bairro / Localidade *</label>
+        <input id="edit-g-neighborhood" type="text" placeholder="Bairro do GCEM">
+      </div>
+      <div class="form-group">
+        <label>Endereço Completo <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(para mapa)</span></label>
+        <input id="edit-g-address" type="text">
+        <span id="edit-g-geo-status" class="geo-status" style="display:none"></span>
+      </div>
     </div>
     <div class="form-row cols2">
       <div class="form-group"><label>Dia da Reunião</label>
@@ -330,31 +333,45 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="tab" id="tab-content-visitante">
   <div id="alert-visitor" style="display:none"></div>
   <div class="card">
-    <div class="card-title">📋 Dados da Ficha de Visitante</div>
-    <div class="form-row cols2">
-      <div class="form-group"><label>Nome Completo *</label><input id="v-name" type="text" placeholder="Nome completo do visitante"></div>
-      <div class="form-group"><label>WhatsApp *</label><input id="v-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)"></div>
+    <div class="card-title">📋 Dados da Ficha de Visitante
+      <span style="font-size:11px;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif;text-transform:none;letter-spacing:0">— preencha apenas o que estiver disponível na ficha</span>
     </div>
+
+    <!-- Dados principais -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:7px">
+      <span style="flex:1;height:1px;background:var(--border)"></span>
+      <span>Informações Pessoais</span>
+      <span style="flex:1;height:1px;background:var(--border)"></span>
+    </div>
+
+    <div class="form-row cols2">
+      <div class="form-group">
+        <label>Nome Completo <span style="color:var(--red)">*</span></label>
+        <input id="v-name" type="text" placeholder="Nome completo do visitante">
+      </div>
+      <div class="form-group">
+        <label>WhatsApp <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
+        <input id="v-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)">
+      </div>
+    </div>
+
     <div class="form-row cols3">
-      <div class="form-group"><label>Idade</label><input id="v-age" type="number" min="0" max="120" placeholder="Ex: 28"></div>
-      <div class="form-group"><label>Estado Civil</label>
+      <div class="form-group">
+        <label>Idade <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
+        <input id="v-age" type="number" min="0" max="120" placeholder="Ex: 28">
+      </div>
+      <div class="form-group">
+        <label>Estado Civil <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
         <select id="v-civil">
-          <option value="">Selecione...</option>
+          <option value="">Não informado</option>
           <option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option>
           <option>Viúvo(a)</option><option>União Estável</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Bairro <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(usado para localização no mapa)</span></label>
-        <input id="v-neighborhood" type="text" placeholder="Bairro onde mora">
-        <span id="v-geo-status" class="geo-status" style="display:none"></span>
-      </div>
-    </div>
-    <input type="hidden" id="v-address" value="">
-    <div class="form-row cols2" style="margin-bottom:0">
-      <div class="form-group"><label>Gostaria de frequentar um GCEM?</label>
+        <label>Interesse em GCEM <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(opcional)</span></label>
         <select id="v-gcem-interest">
-          <option value="">Selecione...</option>
+          <option value="">Não informado</option>
           <option value="Sim, tenho interesse">Sim, tenho interesse</option>
           <option value="Talvez, quero saber mais">Talvez, quero saber mais</option>
           <option value="Não por enquanto">Não por enquanto</option>
@@ -362,12 +379,42 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
         </select>
       </div>
     </div>
-    <div class="form-group"><label>Pedido de Oração</label>
-      <textarea id="v-prayer" placeholder="Pedidos de oração ou observações..."></textarea>
+
+    <!-- Localização -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin:16px 0 10px;display:flex;align-items:center;gap:7px">
+      <span style="flex:1;height:1px;background:var(--border)"></span>
+      <span>📍 Localização <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(opcional — preencha o que tiver)</span></span>
+      <span style="flex:1;height:1px;background:var(--border)"></span>
     </div>
-    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px">
-      <button class="btn btn-outline" onclick="clearVisitorForm()">🗑 Limpar</button>
-      <button class="btn btn-primary" onclick="saveVisitor()">✅ Cadastrar Visitante</button>
+
+    <div class="form-row cols2">
+      <div class="form-group">
+        <label>Bairro <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(para localização no mapa)</span></label>
+        <input id="v-neighborhood" type="text" placeholder="Bairro onde mora">
+        <span id="v-geo-status" class="geo-status" style="display:none"></span>
+      </div>
+      <div class="form-group">
+        <label>Endereço Completo <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(rua e número se souber)</span></label>
+        <input id="v-address" type="text" placeholder="Ex: Rua das Flores, 123">
+      </div>
+    </div>
+
+    <!-- Oração -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin:16px 0 10px;display:flex;align-items:center;gap:7px">
+      <span style="flex:1;height:1px;background:var(--border)"></span>
+      <span>🙏 Pedido de Oração <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></span>
+      <span style="flex:1;height:1px;background:var(--border)"></span>
+    </div>
+    <div class="form-group">
+      <textarea id="v-prayer" placeholder="Pedidos de oração ou observações..." style="min-height:72px"></textarea>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted)">* Apenas o nome é obrigatório. Os outros campos são opcionais.</span>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="clearVisitorForm()">🗑 Limpar</button>
+        <button class="btn btn-primary" onclick="saveVisitor()">✅ Cadastrar Visitante</button>
+      </div>
     </div>
   </div>
 </div>
@@ -378,15 +425,21 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
   <div class="card-grid">
     <div class="card">
       <div class="card-title">➕ Novo GCEM</div>
-      <div class="form-group"><label>Nome do Grupo *</label><input id="g-name" type="text" placeholder="Ex: GCEM Centro, GCEM Rocio..."></div>
+      <div class="form-group"><label>Nome do Grupo <span style="color:var(--red)">*</span></label><input id="g-name" type="text" placeholder="Ex: GCEM Centro, GCEM Rocio..."></div>
       <div class="form-row cols2">
         <div class="form-group"><label>Nome do Líder</label><input id="g-leader" type="text" placeholder="Nome do líder"></div>
-        <div class="form-group"><label>WhatsApp do Líder *</label><input id="g-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)"></div>
+        <div class="form-group"><label>WhatsApp do Líder <span style="color:var(--red)">*</span></label><input id="g-whats" type="tel" placeholder="(41) 99999-9999" oninput="maskPhone(this)"></div>
       </div>
-      <div class="form-group">
-        <label>Endereço do GCEM *</label>
-        <input id="g-address" type="text" placeholder="Endereço completo — Paranaguá/PR">
-        <span id="g-geo-status" class="geo-status" style="display:none"></span>
+      <div class="form-row cols2">
+        <div class="form-group">
+          <label>Bairro / Localidade <span style="color:var(--red)">*</span></label>
+          <input id="g-neighborhood" type="text" placeholder="Bairro do GCEM">
+        </div>
+        <div class="form-group">
+          <label>Endereço Completo <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(para fixar no mapa)</span></label>
+          <input id="g-address" type="text" placeholder="Rua, número — Paranaguá/PR">
+          <span id="g-geo-status" class="geo-status" style="display:none"></span>
+        </div>
       </div>
       <div class="form-row cols2">
         <div class="form-group"><label>Dia da Reunião</label>
@@ -397,6 +450,9 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
           </select>
         </div>
         <div class="form-group"><label>Horário</label><input id="g-time" type="time"></div>
+      </div>
+      <div style="background:var(--gold-light);border:1px solid #f0cc77;border-radius:8px;padding:10px 13px;font-size:12px;color:var(--gold);margin-bottom:12px">
+        💡 O bairro é suficiente para exibir o GCEM no mapa. O endereço completo melhora a precisão.
       </div>
       <button class="btn btn-primary btn-block" onclick="saveGcem()">✅ Cadastrar GCEM</button>
     </div>
@@ -437,34 +493,18 @@ select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%
 <div class="tab" id="tab-content-mapa">
   <div class="section-header">
     <div class="section-title">🗺 Mapa — Visitantes e GCEMs</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-outline btn-sm" id="btn-add-marker" onclick="toggleAddMarker()">📍 Adicionar Marcador</button>
-      <button class="btn btn-primary btn-sm" onclick="initMap()">🔄 Atualizar</button>
-    </div>
+    <button class="btn btn-primary btn-sm" onclick="initMap()">🔄 Atualizar Mapa</button>
   </div>
 
-  <!-- Painel para adicionar/editar marcador no mapa -->
-  <div class="map-edit-panel" id="map-edit-panel">
-    <div class="map-edit-title">📍 <span id="map-edit-title-text">Clique no mapa para posicionar o marcador</span></div>
-    <div class="form-row cols2" style="margin-bottom:10px">
-      <div class="form-group" style="margin-bottom:0"><label>Latitude</label><input id="marker-lat" type="number" step="any" readonly placeholder="Clique no mapa..."></div>
-      <div class="form-group" style="margin-bottom:0"><label>Longitude</label><input id="marker-lng" type="number" step="any" readonly placeholder="Clique no mapa..."></div>
+  <!-- Barra de pesquisa no mapa -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:220px;position:relative">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+      <input id="map-search-input" type="text" placeholder="Buscar endereço ou bairro em Paranaguá..." style="padding-left:36px;border-radius:9px;width:100%">
     </div>
-    <div class="form-row cols2" style="margin-bottom:10px">
-      <div class="form-group" style="margin-bottom:0"><label>Tipo</label>
-        <select id="marker-type">
-          <option value="visitor">Visitante</option>
-          <option value="gcem">GCEM</option>
-        </select>
-      </div>
-      <div class="form-group" style="margin-bottom:0"><label>Vincular a</label>
-        <select id="marker-link"><option value="">Selecione...</option></select>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary btn-sm" onclick="saveMarkerPosition()" id="btn-save-marker" disabled>💾 Salvar Posição</button>
-      <button class="btn btn-outline btn-sm" onclick="cancelAddMarker()">✕ Cancelar</button>
-    </div>
+    <button class="btn btn-outline btn-sm" onclick="searchOnMap()" style="flex-shrink:0">Buscar no Mapa</button>
+    <button class="btn btn-outline btn-sm" onclick="centerOnChurch()" style="flex-shrink:0">⛪ Centralizar na Igreja</button>
+    <button class="btn btn-outline btn-sm" onclick="fitAllMarkers()" style="flex-shrink:0">📍 Ver Todos</button>
   </div>
 
   <div class="map-legend">
@@ -607,6 +647,7 @@ function mapGcemFromDB(r) {
     name: r.name,
     leader: r.leader,
     whatsapp: r.whatsapp,
+    neighborhood: r.neighborhood,
     address: r.address,
     coords: r.lat && r.lng ? { lat: parseFloat(r.lat), lng: parseFloat(r.lng) } : null,
     day: r.day,
@@ -651,6 +692,7 @@ async function saveGcemToDB(g) {
   if (!dbReady || !supabase_client) { saveLocalBackup(); return g.id || Date.now().toString(); }
   const payload = {
     name: g.name, leader: g.leader || null, whatsapp: g.whatsapp,
+    neighborhood: g.neighborhood || null,
     address: g.address,
     lat: g.coords ? g.coords.lat : null, lng: g.coords ? g.coords.lng : null,
     day: g.day || null, time: g.time || null
@@ -763,25 +805,27 @@ function findNearest(coords) {
 // ============================================================
 async function saveVisitor() {
   var name = document.getElementById('v-name').value.trim();
-  var whats = document.getElementById('v-whats').value.trim();
-  if (!name || !whats) { showAlert('alert-visitor', 'error', '⚠️ Nome e WhatsApp são obrigatórios!'); return; }
+  if (!name) { showAlert('alert-visitor', 'error', '⚠️ O nome do visitante é obrigatório!'); return; }
   showLoader('Cadastrando visitante...');
+  var address = document.getElementById('v-address').value.trim();
   var neighborhood = document.getElementById('v-neighborhood').value.trim();
   var coords = null;
-  if (neighborhood) {
+  var geoQuery = address || (neighborhood ? neighborhood : null);
+  if (geoQuery) {
     var st = document.getElementById('v-geo-status');
-    st.textContent = '🔍 Localizando bairro...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-    coords = await geocode(neighborhood);
-    st.textContent = coords ? '✓ Localizado no mapa' : '✗ Bairro não encontrado';
+    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    coords = await geocode(geoQuery);
+    st.textContent = coords ? '✓ Localizado no mapa' : '✗ Endereço não encontrado';
     st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-fail');
   }
   var v = {
     id: null,
-    name, whatsapp: whats,
+    name,
+    whatsapp: document.getElementById('v-whats').value.trim(),
     age: document.getElementById('v-age').value,
     civil: document.getElementById('v-civil').value,
     neighborhood,
-    address: neighborhood, coords,
+    address, coords,
     gcemInterest: document.getElementById('v-gcem-interest').value,
     prayer: document.getElementById('v-prayer').value.trim(),
     date: new Date().toLocaleDateString('pt-BR'),
@@ -805,7 +849,7 @@ async function saveVisitor() {
 }
 
 function clearVisitorForm() {
-  ['v-name','v-whats','v-age','v-neighborhood','v-prayer'].forEach(id => document.getElementById(id).value = '');
+  ['v-name','v-whats','v-age','v-neighborhood','v-address','v-prayer'].forEach(id => document.getElementById(id).value = '');
   ['v-civil','v-gcem-interest'].forEach(id => document.getElementById(id).selectedIndex = 0);
   document.getElementById('v-geo-status').style.display = 'none';
 }
@@ -822,7 +866,7 @@ function openEditVisitor(id) {
   document.getElementById('edit-v-age').value = v.age || '';
   document.getElementById('edit-v-civil').value = v.civil || '';
   document.getElementById('edit-v-neighborhood').value = v.neighborhood || '';
-  document.getElementById('edit-v-neighborhood2').value = v.neighborhood || '';
+  document.getElementById('edit-v-address').value = v.address || '';
   document.getElementById('edit-v-gcem-interest').value = v.gcemInterest || '';
   document.getElementById('edit-v-prayer').value = v.prayer || '';
   document.getElementById('edit-v-geo-status').style.display = 'none';
@@ -837,19 +881,19 @@ async function saveEditVisitor() {
   var whats = document.getElementById('edit-v-whats').value.trim();
   if (!name || !whats) { showToast('Nome e WhatsApp são obrigatórios!', 'error'); return; }
   showLoader('Salvando...');
-  var newNeighborhood = document.getElementById('edit-v-neighborhood2').value.trim();
-  if (newNeighborhood !== v.neighborhood) {
+  var newAddr = document.getElementById('edit-v-address').value.trim();
+  if (newAddr !== v.address) {
     var st = document.getElementById('edit-v-geo-status');
-    st.textContent = '🔍 Localizando bairro...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-    v.coords = newNeighborhood ? await geocode(newNeighborhood) : null;
-    st.textContent = v.coords ? '✓ Localizado no mapa' : '✗ Bairro não encontrado';
+    st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
+    v.coords = newAddr ? await geocode(newAddr) : null;
+    st.textContent = v.coords ? '✓ Localizado' : '✗ Não encontrado';
     st.className = 'geo-status ' + (v.coords ? 'geo-ok' : 'geo-fail');
   }
   v.name = name; v.whatsapp = whats;
   v.age = document.getElementById('edit-v-age').value;
   v.civil = document.getElementById('edit-v-civil').value;
-  v.neighborhood = newNeighborhood;
-  v.address = newNeighborhood;
+  v.neighborhood = document.getElementById('edit-v-neighborhood').value.trim();
+  v.address = newAddr;
   v.gcemInterest = document.getElementById('edit-v-gcem-interest').value;
   v.prayer = document.getElementById('edit-v-prayer').value.trim();
   try {
@@ -872,18 +916,23 @@ async function saveEditVisitor() {
 async function saveGcem() {
   var name = document.getElementById('g-name').value.trim();
   var whats = document.getElementById('g-whats').value.trim();
+  var neighborhood = document.getElementById('g-neighborhood').value.trim();
   var address = document.getElementById('g-address').value.trim();
-  if (!name || !whats || !address) { showAlert('alert-gcem', 'error', '⚠️ Nome, WhatsApp e endereço são obrigatórios!'); return; }
+  if (!name || !whats || !neighborhood) { showAlert('alert-gcem', 'error', '⚠️ Nome, WhatsApp e Bairro são obrigatórios!'); return; }
   showLoader('Localizando endereço do GCEM...');
   var st = document.getElementById('g-geo-status');
   st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-  var coords = await geocode(address);
-  st.textContent = coords ? '✓ Localizado no mapa' : '✗ Endereço não encontrado — verifique';
-  st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-fail');
+  var geoQuery = address || neighborhood;
+  var coords = await geocode(geoQuery);
+  st.textContent = coords ? '✓ Localizado no mapa' : '⚠ Localização aproximada pelo bairro';
+  st.className = 'geo-status ' + (coords ? 'geo-ok' : 'geo-loading');
   var g = {
     id: null, name,
     leader: document.getElementById('g-leader').value.trim(),
-    whatsapp: whats, address, coords,
+    whatsapp: whats,
+    neighborhood,
+    address: address || neighborhood,
+    coords,
     day: document.getElementById('g-day').value,
     time: document.getElementById('g-time').value
   };
@@ -894,8 +943,8 @@ async function saveGcem() {
     saveLocalBackup();
     hideLoader();
     renderGcems();
-    showToast('GCEM <strong>' + name + '</strong> cadastrado' + (coords ? ' com localização!' : '!'), 'success');
-    ['g-name','g-leader','g-whats','g-address','g-time'].forEach(id => document.getElementById(id).value = '');
+    showToast('GCEM <strong>' + name + '</strong> cadastrado' + (coords ? ' com localização no mapa! 📍' : '!'), 'success');
+    ['g-name','g-leader','g-whats','g-address','g-neighborhood','g-time'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('g-day').selectedIndex = 0;
     document.getElementById('g-geo-status').style.display = 'none';
     updateHeader();
@@ -916,6 +965,7 @@ function openEditGcem(id) {
   document.getElementById('edit-g-name').value = g.name || '';
   document.getElementById('edit-g-leader').value = g.leader || '';
   document.getElementById('edit-g-whats').value = g.whatsapp || '';
+  document.getElementById('edit-g-neighborhood').value = g.neighborhood || '';
   document.getElementById('edit-g-address').value = g.address || '';
   document.getElementById('edit-g-day').value = g.day || '';
   document.getElementById('edit-g-time').value = g.time || '';
@@ -929,18 +979,20 @@ async function saveEditGcem() {
   if (!g) return;
   var name = document.getElementById('edit-g-name').value.trim();
   var whats = document.getElementById('edit-g-whats').value.trim();
+  var neighborhood = document.getElementById('edit-g-neighborhood').value.trim();
   var address = document.getElementById('edit-g-address').value.trim();
-  if (!name || !whats || !address) { showToast('Preencha os campos obrigatórios!', 'error'); return; }
+  if (!name || !whats || !neighborhood) { showToast('Preencha Nome, WhatsApp e Bairro!', 'error'); return; }
   showLoader('Salvando...');
-  if (address !== g.address) {
+  var geoQuery = address || neighborhood;
+  if (geoQuery !== (g.address || g.neighborhood)) {
     var st = document.getElementById('edit-g-geo-status');
     st.textContent = '🔍 Localizando...'; st.className = 'geo-status geo-loading'; st.style.display = 'inline-block';
-    g.coords = await geocode(address);
-    st.textContent = g.coords ? '✓ Localizado' : '✗ Não encontrado';
-    st.className = 'geo-status ' + (g.coords ? 'geo-ok' : 'geo-fail');
+    g.coords = await geocode(geoQuery);
+    st.textContent = g.coords ? '✓ Localizado' : '⚠ Aproximado pelo bairro';
+    st.className = 'geo-status ' + (g.coords ? 'geo-ok' : 'geo-loading');
   }
   g.name = name; g.leader = document.getElementById('edit-g-leader').value.trim();
-  g.whatsapp = whats; g.address = address;
+  g.whatsapp = whats; g.neighborhood = neighborhood; g.address = address || neighborhood;
   g.day = document.getElementById('edit-g-day').value;
   g.time = document.getElementById('edit-g-time').value;
   try {
@@ -1096,13 +1148,15 @@ function renderGcems() {
   if (!gcems.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🏠</div><div class="empty-text">Nenhum GCEM cadastrado</div></div>'; return; }
   el.innerHTML = gcems.map(g => {
     var visitCount = visitors.filter(v => v.assignedGcem === g.id).length;
+    var location = g.neighborhood ? g.neighborhood : (g.address || '');
     return '<div class="gcem-card">' +
       '<div class="gcem-accent"></div>' +
       '<div class="gcem-info">' +
         '<div class="gcem-name">' + g.name + (visitCount ? ' <span class="badge badge-gold">' + visitCount + ' visitante' + (visitCount > 1 ? 's' : '') + '</span>' : '') + '</div>' +
         '<div class="gcem-detail">👤 ' + (g.leader || 'Líder não informado') + '&nbsp;·&nbsp;📱 ' + g.whatsapp + '</div>' +
-        '<div class="gcem-detail">📍 ' + g.address + (g.day ? '&nbsp;·&nbsp;⏰ ' + g.day + (g.time ? ' às ' + g.time : '') : '') + '</div>' +
-        (g.coords ? '<span class="badge badge-green" style="margin-top:5px">📍 No mapa</span>' : '<span class="badge badge-gray" style="margin-top:5px">Sem localização</span>') +
+        '<div class="gcem-detail">📍 ' + location + (g.day ? '&nbsp;·&nbsp;⏰ ' + g.day + (g.time ? ' às ' + g.time : '') : '') + '</div>' +
+        (g.coords ? '<span class="badge badge-green" style="margin-top:5px">📍 No mapa</span>' :
+          '<span class="badge badge-gray" style="margin-top:5px;cursor:pointer" onclick="quickGeoGcem(\'' + g.id + '\')" title="Clique para tentar localizar">📡 Sem localização — clique para tentar</span>') +
       '</div>' +
       '<div class="gcem-actions">' +
         '<a href="https://wa.me/55' + g.whatsapp.replace(/\D/g, '') + '" target="_blank" class="btn btn-whatsapp btn-sm">💬</a>' +
@@ -1163,7 +1217,7 @@ function loadGoogleMaps() {
   var script = document.createElement('script');
   script.id = 'gm-script';
   // Google Maps API key — substitua pela sua key real
-  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD67uv4hxTiGMzVT28j0LVml9EzK2MwpMc&callback=onGoogleMapsReady&language=pt-BR';
+  script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&libraries=places&callback=onGoogleMapsReady&language=pt-BR';
   script.async = true;
   script.defer = true;
   document.head.appendChild(script);
@@ -1355,82 +1409,87 @@ function initMap() {
 }
 
 // ============================================================
-// MAP — ADD/EDIT MARKERS
+// MAP — SEARCH & HELPERS
 // ============================================================
-function toggleAddMarker() {
-  addingMarker = !addingMarker;
-  var panel = document.getElementById('map-edit-panel');
-  var btn = document.getElementById('btn-add-marker');
-  if (addingMarker) {
-    panel.classList.add('show');
-    btn.textContent = '✕ Cancelar adição';
-    btn.className = 'btn btn-danger btn-sm';
-    document.getElementById('map-edit-title-text').textContent = 'Clique no mapa para posicionar o marcador';
-    document.getElementById('marker-lat').value = '';
-    document.getElementById('marker-lng').value = '';
-    document.getElementById('btn-save-marker').disabled = true;
-    // Populate link select
-    populateMarkerLink();
-    showToast('Clique no mapa para posicionar o novo marcador', 'info');
-  } else {
-    cancelAddMarker();
-  }
-}
+var searchMarker = null;
+var mapBounds = null;
 
-function cancelAddMarker() {
-  addingMarker = false;
-  document.getElementById('map-edit-panel').classList.remove('show');
-  var btn = document.getElementById('btn-add-marker');
-  btn.textContent = '📍 Adicionar Marcador';
-  btn.className = 'btn btn-outline btn-sm';
-  if (tempMarker) { tempMarker.setMap(null); tempMarker = null; }
-}
-
-function populateMarkerLink() {
-  var type = document.getElementById('marker-type').value;
-  var sel = document.getElementById('marker-link');
-  sel.innerHTML = '<option value="">Selecione...</option>';
-  var items = type === 'visitor' ? visitors : gcems;
-  items.forEach(item => {
-    sel.innerHTML += '<option value="' + item.id + '">' + item.name + '</option>';
+function searchOnMap() {
+  var query = document.getElementById('map-search-input').value.trim();
+  if (!query) { showToast('Digite um endereço para buscar', 'info'); return; }
+  if (!mapInstance) { showToast('Carregue o mapa primeiro', 'error'); return; }
+  var fullQuery = query + ', Paranaguá, Paraná, Brasil';
+  var geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: fullQuery }, function(results, status) {
+    if (status === 'OK' && results[0]) {
+      var loc = results[0].geometry.location;
+      mapInstance.setCenter(loc);
+      mapInstance.setZoom(16);
+      if (searchMarker) searchMarker.setMap(null);
+      searchMarker = new google.maps.Marker({
+        position: loc, map: mapInstance,
+        title: results[0].formatted_address,
+        icon: {
+          path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+          fillColor: '#9C27B0', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2, scale: 7
+        },
+        animation: google.maps.Animation.DROP,
+        zIndex: 20
+      });
+      var iw = new google.maps.InfoWindow({
+        content: '<div style="font-family:DM Sans,sans-serif;padding:4px 2px"><strong style="color:#9C27B0">📌 Busca</strong><br><span style="font-size:12px">' + results[0].formatted_address + '</span></div>'
+      });
+      iw.open(mapInstance, searchMarker);
+      showToast('Endereço encontrado no mapa!', 'success');
+    } else {
+      showToast('Endereço não encontrado. Tente ser mais específico.', 'error');
+    }
   });
 }
-document.addEventListener('DOMContentLoaded', () => {
-  var mt = document.getElementById('marker-type');
-  if (mt) mt.addEventListener('change', populateMarkerLink);
-});
 
-async function saveMarkerPosition() {
-  var lat = parseFloat(document.getElementById('marker-lat').value);
-  var lng = parseFloat(document.getElementById('marker-lng').value);
-  var type = document.getElementById('marker-type').value;
-  var linkId = document.getElementById('marker-link').value;
-  if (!linkId) { showToast('Selecione a quem vincular o marcador!', 'error'); return; }
-  if (!lat || !lng) { showToast('Selecione a posição no mapa!', 'error'); return; }
-  showLoader('Salvando posição...');
-  try {
-    if (type === 'visitor') {
-      var v = visitors.find(x => x.id === linkId);
-      if (!v) { hideLoader(); return; }
-      v.coords = { lat, lng };
-      await saveVisitorToDB(v);
-      showToast('Posição de ' + v.name + ' salva!', 'success');
-    } else {
-      var g = gcems.find(x => x.id === linkId);
-      if (!g) { hideLoader(); return; }
-      g.coords = { lat, lng };
-      await saveGcemToDB(g);
-      showToast('Posição do ' + g.name + ' salva!', 'success');
-    }
-    saveLocalBackup();
-    hideLoader();
-    cancelAddMarker();
-    initMap();
-  } catch(e) {
-    hideLoader();
-    showToast('Erro ao salvar: ' + (e.message || ''), 'error');
+function centerOnChurch() {
+  if (!mapInstance) return;
+  mapInstance.setCenter({ lat: CHURCH.lat, lng: CHURCH.lng });
+  mapInstance.setZoom(15);
+}
+
+function fitAllMarkers() {
+  if (!mapInstance) return;
+  if (mapBounds && !mapBounds.isEmpty()) {
+    mapInstance.fitBounds(mapBounds, { top: 60, right: 60, bottom: 60, left: 60 });
+  } else {
+    centerOnChurch();
   }
 }
+
+// Quickly try to geocode a GCEM that has no coords yet
+async function quickGeoGcem(id) {
+  var g = gcems.find(x => x.id === id);
+  if (!g) return;
+  showLoader('Tentando localizar ' + g.name + '...');
+  var query = g.address || g.neighborhood;
+  if (!query) { hideLoader(); showToast('GCEM não tem endereço ou bairro cadastrado', 'error'); return; }
+  var coords = await geocode(query);
+  if (coords) {
+    g.coords = coords;
+    try {
+      await saveGcemToDB(g);
+      saveLocalBackup();
+      hideLoader();
+      renderGcems();
+      showToast(g.name + ' localizado no mapa! 📍', 'success');
+    } catch(e) { hideLoader(); showToast('Erro ao salvar localização', 'error'); }
+  } else {
+    hideLoader();
+    showToast('Não foi possível localizar "' + query + '". Edite o GCEM com um endereço mais completo.', 'error', 5000);
+  }
+}
+
+// Search input — Enter key support
+document.addEventListener('DOMContentLoaded', () => {
+  var inp = document.getElementById('map-search-input');
+  if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchOnMap(); });
+});
 
 // Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
